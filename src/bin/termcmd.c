@@ -6,7 +6,6 @@
 #include "termio.h"
 #include "config.h"
 #include "controls.h"
-#include "media.h"
 #include "utils.h"
 #include "termcmd.h"
 
@@ -98,7 +97,7 @@ _termcmd_grid_size(Evas_Object *obj, Evas_Object *win EINA_UNUSED, Evas_Object *
 static Eina_Bool
 _termcmd_background(Evas_Object *obj, Evas_Object *win EINA_UNUSED, Evas_Object *bg EINA_UNUSED, const char *cmd)
 {
-   Config *config = termio_config_get(obj);
+/*   Config *config = termio_config_get(obj);
 
    if (!config) return EINA_TRUE;
 
@@ -115,7 +114,7 @@ _termcmd_background(Evas_Object *obj, Evas_Object *win EINA_UNUSED, Evas_Object 
         main_media_update(config);
      }
    else
-     ERR(_("Background file could not be read: %s"), cmd);
+     ERR(_("Background file could not be read: %s"), cmd);*/
 
    return EINA_TRUE;
 }

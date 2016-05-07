@@ -4,8 +4,6 @@
 #include "config.h"
 #include "main.h"
 #include "miniview.h"
-#include "gravatar.h"
-#include "media.h"
 #include "termio.h"
 #include "utils.h"
 #include "private.h"
@@ -50,7 +48,6 @@ struct _Term
    Evas_Object *tab_region_base;
    Evas_Object *tab_region_bg;
    Eina_List   *popmedia_queue;
-   Media_Type   poptype, mediatype;
    Tabbar       tabbar;
    int          step_x, step_y, min_w, min_h, req_w, req_h;
    struct {
@@ -493,7 +490,7 @@ win_new(const char *name, const char *role, const char *title,
    evas_object_show(o);
 
    wn->base = o = edje_object_add(evas_object_evas_get(wn->win));
-   theme_apply(o, config, "terminology/base");
+   // theme_apply(o, config, "terminology/base");
    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
    elm_object_content_set(wn->conform, o);
@@ -769,7 +766,7 @@ _cb_size_hint(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event EIN
    Evas_Coord mw, mh, rw, rh, w = 0, h = 0;
 
    evas_object_size_hint_min_get(obj, &mw, &mh);
-   evas_object_size_hint_request_get(obj, &rw, &rh);
+   //evas_object_size_hint_request_get(obj, &rw, &rh);
    edje_object_size_min_calc(term->base, &w, &h);
    evas_object_size_hint_min_set(term->base, w, h);
    edje_object_size_min_calc(term->bg, &w, &h);
@@ -778,8 +775,8 @@ _cb_size_hint(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event EIN
    term->step_y = mh;
    term->min_w = w - mw;
    term->min_h = h - mh;
-   term->req_w = w - mw + rw;
-   term->req_h = h - mh + rh;
+   term->req_w = w - mw/* + rw*/;
+   term->req_h = h - mh/* + rh*/;
 
    if (term->wn->size_job) ecore_job_del(term->wn->size_job);
    term->wn->size_job = ecore_job_add(_size_job, term->wn);
@@ -1531,65 +1528,13 @@ _cb_popmedia_done(void *data, Evas_Object *obj EINA_UNUSED, const char *sig EINA
 static void
 _cb_media_loop(void *data, Evas_Object *obj EINA_UNUSED, void *info EINA_UNUSED)
 {
-   Term *term = data;
-   
-   if (term->popmedia_queue)
-     {
-        if (term->popmedia) media_play_set(term->popmedia, EINA_FALSE);
-        edje_object_signal_emit(term->bg, "popmedia,off", "terminology");
-     }
+
 }
 
 static void
 _popmedia_show(Term *term, const char *src)
 {
-   Evas_Object *o;
-   Config *config = termio_config_get(term->term);
-   Media_Type type;
 
-   if (!config) return;
-   ty_dbus_link_hide();
-   if (term->popmedia)
-     {
-        const char *s;
-        
-        EINA_LIST_FREE(term->popmedia_queue, s)
-          {
-             eina_stringshare_del(s);
-          }
-        term->popmedia_queue = eina_list_append(term->popmedia_queue,
-                                                eina_stringshare_add(src));
-        edje_object_signal_emit(term->bg, "popmedia,off", "terminology");
-        return;
-     }
-   termio_mouseover_suspend_pushpop(term->term, 1);
-   type = media_src_type_get(src);
-   term->popmedia = o = media_add(win_evas_object_get(term->wn),
-                                  src, config, MEDIA_POP, type);
-   term->popmedia_deleted = EINA_FALSE;
-   evas_object_smart_callback_add(o, "loop", _cb_media_loop, term);
-   evas_object_event_callback_add(o, EVAS_CALLBACK_DEL, _cb_popmedia_del, term);
-   edje_object_part_swallow(term->bg, "terminology.popmedia", o);
-   evas_object_show(o);
-   term->poptype = type;
-   switch (type)
-     {
-      case MEDIA_TYPE_IMG:
-         edje_object_signal_emit(term->bg, "popmedia,image", "terminology");
-         break;
-      case MEDIA_TYPE_SCALE:
-         edje_object_signal_emit(term->bg, "popmedia,scale", "terminology");
-         break;
-      case MEDIA_TYPE_EDJE:
-         edje_object_signal_emit(term->bg, "popmedia,edje", "terminology");
-         break;
-      case MEDIA_TYPE_MOV:
-         edje_object_signal_emit(term->bg, "popmedia,movie", "terminology");
-         break;
-      case MEDIA_TYPE_UNKNOWN:
-      default:
-         break;
-     }
 }
 
 static void
@@ -2104,63 +2049,7 @@ _cb_media_del(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNUSED, voi
 static void
 _term_media_update(Term *term, const Config *config)
 {
-   if ((config->background) && (config->background[0]))
-     {
-        Evas_Object *o;
-        Media_Type type;
 
-        if (term->media)
-          {
-             evas_object_event_callback_del(term->media,
-                                            EVAS_CALLBACK_DEL,
-                                            _cb_media_del);
-             evas_object_del(term->media);
-          }
-        type = media_src_type_get(config->background);
-        term->media = o = media_add(term->wn->win,
-                                    config->background, config,
-                                    MEDIA_BG, type);
-        evas_object_event_callback_add(o, EVAS_CALLBACK_DEL,
-                                       _cb_media_del, term);
-        edje_object_part_swallow(term->base, "terminology.background", o);
-        evas_object_show(o);
-        term->mediatype = type;
-        switch (type)
-          {
-           case MEDIA_TYPE_IMG:
-              edje_object_signal_emit(term->bg, "media,image", "terminology");
-              edje_object_signal_emit(term->base, "media,image", "terminology");
-              break;
-           case MEDIA_TYPE_SCALE:
-              edje_object_signal_emit(term->bg, "media,scale", "terminology");
-              edje_object_signal_emit(term->base, "media,scale", "terminology");
-              break;
-           case MEDIA_TYPE_EDJE:
-              edje_object_signal_emit(term->bg, "media,edje", "terminology");
-              edje_object_signal_emit(term->base, "media,edje", "terminology");
-              break;
-           case MEDIA_TYPE_MOV:
-              edje_object_signal_emit(term->bg, "media,movie", "terminology");
-              edje_object_signal_emit(term->base, "media,movie", "terminology");
-              break;
-           case MEDIA_TYPE_UNKNOWN:
-           default:
-              break;
-          }
-     }
-   else
-     {
-        if (term->media)
-          {
-             evas_object_event_callback_del(term->media,
-                                            EVAS_CALLBACK_DEL,
-                                            _cb_media_del);
-             edje_object_signal_emit(term->bg, "media,off", "terminology");
-             edje_object_signal_emit(term->base, "media,off", "terminology");
-             evas_object_del(term->media);
-             term->media = NULL;
-          }
-     }
 }
 
 void
@@ -2184,35 +2073,13 @@ main_media_update(const Config *config)
 void
 main_media_mute_update(const Config *config)
 {
-   Win *wn;
-   Term *term;
-   Eina_List *l, *ll;
 
-   EINA_LIST_FOREACH(wins, l, wn)
-     {
-        EINA_LIST_FOREACH(wn->terms, ll, term)
-          {
-             if (term->media) media_mute_set(term->media, config->mute);
-             termio_media_mute_set(term->term, config->mute);
-          }
-     }
 }
 
 void
 main_media_visualize_update(const Config *config)
 {
-   Win *wn;
-   Term *term;
-   Eina_List *l, *ll;
 
-   EINA_LIST_FOREACH(wins, l, wn)
-     {
-        EINA_LIST_FOREACH(wn->terms, ll, term)
-          {
-             if (term->media) media_visualize_set(term->media, config->visualize);
-             termio_media_visualize_set(term->term, config->visualize);
-          }
-     }
 }
 
 void
@@ -2244,8 +2111,10 @@ main_config_sync(const Config *config)
                   w = tsize_w / mw;
                   h = tsize_h / mh;
                   evas_object_data_del(term->term, "sizedone");
+/*
                   evas_object_size_hint_request_set(term->term,
                                                     w * mw, h * mh);
+*/
                }
           }
      }
@@ -2346,53 +2215,6 @@ main_term_bg_config(Term *term)
    edje_object_part_swallow(term->base, "terminology.content", term->term);
    edje_object_part_swallow(term->bg, "terminology.content", term->base);
    edje_object_part_swallow(term->bg, "terminology.miniview", term->miniview);
-   if (term->popmedia)
-     {
-        edje_object_part_swallow(term->bg, "terminology.popmedia", term->popmedia);
-        switch (term->poptype)
-          {
-           case MEDIA_TYPE_IMG:
-              edje_object_signal_emit(term->bg, "popmedia,image", "terminology");
-              break;
-           case MEDIA_TYPE_SCALE:
-              edje_object_signal_emit(term->bg, "popmedia,scale", "terminology");
-              break;
-           case MEDIA_TYPE_EDJE:
-              edje_object_signal_emit(term->bg, "popmedia,edje", "terminology");
-              break;
-           case MEDIA_TYPE_MOV:
-              edje_object_signal_emit(term->bg, "popmedia,movie", "terminology");
-              break;
-           default:
-              break;
-          }
-     }
-   if (term->media)
-     {
-        edje_object_part_swallow(term->base, "terminology.background", term->media);
-        switch (term->mediatype)
-          {
-           case MEDIA_TYPE_IMG:
-              edje_object_signal_emit(term->bg, "media,image", "terminology");
-              edje_object_signal_emit(term->base, "media,image", "terminology");
-              break;
-           case MEDIA_TYPE_SCALE:
-              edje_object_signal_emit(term->bg, "media,scale", "terminology");
-              edje_object_signal_emit(term->base, "media,scale", "terminology");
-              break;
-           case MEDIA_TYPE_EDJE:
-             edje_object_signal_emit(term->bg, "media,edje", "terminology");
-             edje_object_signal_emit(term->base, "media,edje", "terminology");
-             break;
-           case MEDIA_TYPE_MOV:
-             edje_object_signal_emit(term->bg, "media,movie", "terminology");
-             edje_object_signal_emit(term->base, "media,movie", "terminology");
-             break;
-           case MEDIA_TYPE_UNKNOWN:
-           default:
-             break;
-          }
-     }
 
    if ((term->focused) && (term->wn->focused))
      {
@@ -2620,34 +2442,26 @@ term_new(Win *wn, Config *config, const char *cmd,
    /* TODO: clean up that */
    termpty_init();
    miniview_init();
-   gravatar_init();
 
    term->wn = wn;
    term->hold = hold;
    term->config = config;
    
    term->base = o = edje_object_add(canvas);
-   theme_apply(o, term->config, "terminology/core");
+   // theme_apply(o, term->config, "terminology/core");
 
-   theme_auto_reload_enable(o);
-   evas_object_data_set(o, "theme_reload_func", main_term_bg_config);
-   evas_object_data_set(o, "theme_reload_func_data", term);
+   // theme_auto_reload_enable(o);
+   //evas_object_data_set(o, "theme_reload_func", main_term_bg_config);
+   //evas_object_data_set(o, "theme_reload_func_data", term);
    evas_object_show(o);
 
    term->bg = o = edje_object_add(canvas);
    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-   if (!theme_apply(o, config, "terminology/background"))
-     {
-        CRITICAL(_("Couldn't find terminology theme! Forgot 'make install'?"));
-        evas_object_del(term->bg);
-        free(term);
-        return NULL;
-     }
 
-   theme_auto_reload_enable(o);
-   evas_object_data_set(o, "theme_reload_func", main_term_bg_config);
-   evas_object_data_set(o, "theme_reload_func_data", term);
+   //theme_auto_reload_enable(o);
+   //evas_object_data_set(o, "theme_reload_func", main_term_bg_config);
+   //evas_object_data_set(o, "theme_reload_func_data", term);
    evas_object_show(o);
 
    _term_tabregion_setup(term);
@@ -2662,7 +2476,8 @@ term_new(Win *wn, Config *config, const char *cmd,
 
    term->term = o = termio_add(wn->win, config, cmd, login_shell, cd,
                                size_w, size_h, term);
-   colors_term_init(termio_textgrid_get(term->term), term->bg, config);
+   // Breaks on get colors
+   // colors_term_init(termio_textgrid_get(term->term), term->bg, config);
 
    termio_win_set(o, wn->win);
    termio_theme_set(o, term->bg);

@@ -16,38 +16,19 @@
 #include <errno.h>
 #include <unistd.h>
 #include <termios.h>
+#include "stdlib_Hack.h"
 
 /* specific log domain to help debug only terminal code parser */
 int _termpty_log_dom = -1;
 
-#undef CRITICAL
-#undef ERR
-#undef WRN
-#undef INF
-#undef DBG
-
-#define CRITICAL(...) EINA_LOG_DOM_CRIT(_termpty_log_dom, __VA_ARGS__)
-#define ERR(...)      EINA_LOG_DOM_ERR(_termpty_log_dom, __VA_ARGS__)
-#define WRN(...)      EINA_LOG_DOM_WARN(_termpty_log_dom, __VA_ARGS__)
-#define INF(...)      EINA_LOG_DOM_INFO(_termpty_log_dom, __VA_ARGS__)
-#define DBG(...)      EINA_LOG_DOM_DBG(_termpty_log_dom, __VA_ARGS__)
-
 void
 termpty_init(void)
 {
-   if (_termpty_log_dom >= 0) return;
-
-   _termpty_log_dom = eina_log_domain_register("termpty", NULL);
-   if (_termpty_log_dom < 0)
-     EINA_LOG_CRIT("Could not create logging domain '%s'.", "termpty");
 }
 
 void
 termpty_shutdown(void)
 {
-   if (_termpty_log_dom < 0) return;
-   eina_log_domain_unregister(_termpty_log_dom);
-   _termpty_log_dom = -1;
 }
 
 static void
@@ -333,6 +314,10 @@ termpty_new(const char *cmd, Eina_Bool login_shell, const char *cd,
              WRN(_("Could not find shell, falling back to %s"), "/bin/sh");
              shell = "/bin/sh";
           }
+        if (!strcmp("/bin/false", shell)) {
+            WRN(_("Shell is set to /bin/false, falling back to %s"), "/bin/sh");
+            shell = "/bin/sh";
+        }
      }
 
    if (!needs_shell)
