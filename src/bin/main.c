@@ -5,19 +5,20 @@
 
 #include <Ecore_Getopt.h>
 #include <Elementary.h>
+#include "E17Hacks.h"
+#include "Ecore_File_Hack.h"
+#include <dlog.h>
 #include "main.h"
 #include "win.h"
 #include "termio.h"
 #include "termpty.h"
 #include "config.h"
 #include "controls.h"
-#include "media.h"
 #include "utils.h"
 #include "ipc.h"
 #include "sel.h"
 #include "dbus.h"
 #include "miniview.h"
-#include "gravatar.h"
 #include "keyin.h"
 
 
@@ -260,7 +261,7 @@ main_ipc_new(Ipc_Instance *inst)
              int n = strlen(inst->font);
              
              snprintf(buf, sizeof(buf), "%s/fonts", elm_app_data_dir_get());
-             files = ecore_file_ls(buf);
+             files = NULL; //ecore_file_ls(buf);
              EINA_LIST_FREE(files, file)
                {
                   if (n > 0)
@@ -308,9 +309,9 @@ main_ipc_new(Ipc_Instance *inst)
      }
    win_sizing_handle(wn);
    evas_object_show(win_evas_object_get(wn));
-   if (inst->nowm)
+/*   if (inst->nowm)
      ecore_evas_focus_set
-     (ecore_evas_ecore_evas_get(evas_object_evas_get(win)), 1);
+     (ecore_evas_ecore_evas_get(evas_object_evas_get(win)), 1);*/
    ecore_app_args_set(pargc, (const char **)pargv);
    free(nargv);
 }
@@ -321,9 +322,9 @@ static const char *emotion_choices[] = {
 };
 
 static Ecore_Getopt options = {
-   PACKAGE_NAME,
+   "x",
    "%prog [options]",
-   PACKAGE_VERSION,
+   "y",
    gettext_noop("(C) 2012-%d Carsten Haitzler and others"),
    "BSD 2-Clause",
    gettext_noop("Terminal emulator written with Enlightenment Foundation Libraries."),
@@ -525,9 +526,12 @@ elm_main(int argc, char **argv)
 
    elm_language_set("");
    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
+   dlog_print(DLOG_DEBUG, "TERM_THREE", "Main function entry point");
+/*
    elm_app_compile_bin_dir_set(PACKAGE_BIN_DIR);
    elm_app_compile_lib_dir_set(PACKAGE_LIB_DIR);
    elm_app_compile_data_dir_set(PACKAGE_DATA_DIR);
+*/
 #if HAVE_GETTEXT && ENABLE_NLS
    elm_app_compile_locale_set(LOCALEDIR);
 #endif
@@ -541,13 +545,13 @@ elm_main(int argc, char **argv)
    options.copyright = "(C) 2012-2015 Carsten Haitzler and others";
 #endif
 
-   _log_domain = eina_log_domain_register("terminology", NULL);
+/*   _log_domain = eina_log_domain_register("terminology", NULL);
    if (_log_domain < 0)
      {
         EINA_LOG_CRIT(_("Could not create logging domain '%s'."), "terminology");
         elm_shutdown();
         return EXIT_FAILURE;
-     }
+     }*/
 
    config_init();
 
@@ -921,9 +925,11 @@ remote:
         if (pos_y < 0) pos_y = screen_h + pos_y;
         evas_object_move(win, pos_x, pos_y);
      }
+/*
    if (nowm)
       ecore_evas_focus_set(ecore_evas_ecore_evas_get(
             evas_object_evas_get(win)), 1);
+*/
 
    ty_dbus_init();
 
@@ -951,14 +957,13 @@ remote:
 
    termpty_shutdown();
    miniview_shutdown();
-   gravatar_shutdown();
 
    windows_free();
 
    config_del(_main_config);
    key_bindings_shutdown();
    config_shutdown();
-   eina_log_domain_unregister(_log_domain);
+/*   eina_log_domain_unregister(_log_domain);*/
    _log_domain = -1;
 
 #if HAVE_GETTEXT && ENABLE_NLS

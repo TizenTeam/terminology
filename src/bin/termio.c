@@ -2,6 +2,10 @@
 
 #include <Elementary.h>
 #include <Ecore_Input.h>
+#include "E17Hacks.h"
+#include "evas_textgrid.eo.legacy_Hack.h"
+#include "Ecore_File_Hack.h"
+#include "Ecore_Evas_Hack.h"
 
 #include "termio.h"
 #include "termiolink.h"
@@ -13,10 +17,8 @@
 #include "keyin.h"
 #include "config.h"
 #include "utils.h"
-#include "media.h"
 #include "dbus.h"
 #include "miniview.h"
-#include "gravatar.h"
 
 #if defined (__MacOSX__) || (defined (__MACH__) && defined (__APPLE__))
 # include <sys/proc_info.h>
@@ -380,31 +382,12 @@ termio_icon_name_get(Evas_Object *obj)
 void
 termio_media_mute_set(Evas_Object *obj, Eina_Bool mute)
 {
-   Termio *sd = evas_object_smart_data_get(obj);
-   Eina_List *l;
-   Termblock *blk;
 
-   EINA_SAFETY_ON_NULL_RETURN(sd);
-   EINA_LIST_FOREACH(sd->pty->block.active, l, blk)
-     {
-        if (blk->obj && !blk->edje)
-          media_mute_set(blk->obj, mute);
-     }
 }
 
 void
 termio_media_visualize_set(Evas_Object *obj, Eina_Bool visualize)
 {
-   Termio *sd = evas_object_smart_data_get(obj);
-   Eina_List *l;
-   Termblock *blk;
-
-   EINA_SAFETY_ON_NULL_RETURN(sd);
-   EINA_LIST_FOREACH(sd->pty->block.active, l, blk)
-     {
-        if (blk->obj && !blk->edje)
-          media_visualize_set(blk->obj, visualize);
-     }
 }
 
 Eina_Bool
@@ -587,10 +570,12 @@ termio_config_update(Evas_Object *obj)
    if (evas_object_focus_get(obj))
      {
         edje_object_signal_emit(sd->cursor.obj, "focus,out", "terminology");
-        if (sd->config->disable_cursor_blink)
-          edje_object_signal_emit(sd->cursor.obj, "focus,in,noblink", "terminology");
-        else
-          edje_object_signal_emit(sd->cursor.obj, "focus,in", "terminology");
+        if (sd->config) {
+			if (sd->config->disable_cursor_blink)
+			  edje_object_signal_emit(sd->cursor.obj, "focus,in,noblink", "terminology");
+			else
+			  edje_object_signal_emit(sd->cursor.obj, "focus,in", "terminology");
+        }
      }
 
    colors_term_init(sd->grid.obj, sd->theme, sd->config);
@@ -755,53 +740,13 @@ _activate_link(Evas_Object *obj, Eina_Bool may_inline)
         escaped = ecore_file_escape_name(s);
         if (escaped)
           {
-             type = media_src_type_get(sd->link.string);
-             if (may_inline && _should_inline(obj))
-               {
-                  if ((type == MEDIA_TYPE_IMG) ||
-                      (type == MEDIA_TYPE_SCALE) ||
-                      (type == MEDIA_TYPE_EDJE))
-                    {
-                       evas_object_smart_callback_call(obj, "popup", NULL);
-                       handled = EINA_TRUE;
-                    }
-                  else if (type == MEDIA_TYPE_MOV)
-                    {
-                       evas_object_smart_callback_call(obj, "popup", NULL);
-                       handled = EINA_TRUE;
-                    }
-               }
-             if (!handled)
-               {
-                  if ((type == MEDIA_TYPE_IMG) ||
-                      (type == MEDIA_TYPE_SCALE) ||
-                      (type == MEDIA_TYPE_EDJE))
-                    {
-                       if ((config->helper.local.image) &&
-                           (config->helper.local.image[0]))
-                         cmd = config->helper.local.image;
-                    }
-                  else if (type == MEDIA_TYPE_MOV)
-                    {
-                       if ((config->helper.local.video) &&
-                           (config->helper.local.video[0]))
-                         cmd = config->helper.local.video;
-                    }
-                  else
-                    {
-                       if ((config->helper.local.general) &&
-                           (config->helper.local.general[0]))
-                         cmd = config->helper.local.general;
-                    }
                   snprintf(buf, sizeof(buf), "%s %s", cmd, escaped);
                   free(escaped);
-               }
           }
      }
    else if (url)
      {
         // remote file needs ecore-con-url
-        cmd = "xdg-open";
 
         escaped = ecore_file_escape_name(s);
         if (escaped)
@@ -845,7 +790,6 @@ _activate_link(Evas_Object *obj, Eina_Bool may_inline)
         return;
      }
    free(s);
-   if (!handled) ecore_exe_run(buf, NULL);
 }
 
 static void
@@ -934,17 +878,7 @@ _cb_link_down(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNUSED, voi
         ctxp = elm_ctxpopup_add(sd->win);
         sd->ctxpopup = ctxp;
 
-        if (sd->config->helper.inline_please)
-          {
-             int type = media_src_type_get(sd->link.string);
 
-             if ((type == MEDIA_TYPE_IMG) ||
-                 (type == MEDIA_TYPE_SCALE) ||
-                 (type == MEDIA_TYPE_EDJE) ||
-                 (type == MEDIA_TYPE_MOV))
-               elm_ctxpopup_item_append(ctxp, _("Preview"), NULL,
-                                        _cb_ctxp_link_preview, sd->self);
-          }
         elm_ctxpopup_item_append(ctxp, _("Open"), NULL, _cb_ctxp_link_open,
                                  sd->self);
         elm_ctxpopup_item_append(ctxp, _("Copy"), NULL, _cb_ctxp_link_copy,
@@ -1143,16 +1077,11 @@ _update_link(Evas_Object *obj, Termio *sd,
 
         _x += sd->mouse.cx * sd->font.chw;
         _y += sd->mouse.cy * sd->font.chh;
-#if (ELM_VERSION_MAJOR > 1) || (ELM_VERSION_MINOR >= 8)
-        xwin = elm_win_window_id_get(sd->win);
-# if (ELM_VERSION_MAJOR > 1) || ((ELM_VERSION_MAJOR == 1) && (ELM_VERSION_MINOR > 8)) // not a typo
-        if (strstr(ecore_evas_engine_name_get(ecore_evas_ecore_evas_get(evas_object_evas_get(sd->win))), "wayland"))
-          xwin = ((uint64_t)xwin << 32) + (uint64_t)getpid();
-# endif
-#else
+/*
+         xwin = ((uint64_t)xwin << 32) + (uint64_t)getpid();
         xwin = elm_win_xwindow_get(sd->win);
-#endif
         ty_dbus_link_mousein(xwin, sd->link.string, _x, _y);
+*/
      }
    for (y = sd->link.y1; y <= sd->link.y2; y++)
      {
@@ -1196,10 +1125,7 @@ _update_link(Evas_Object *obj, Termio *sd,
                                        _cb_link_up, obj);
         evas_object_event_callback_add(o, EVAS_CALLBACK_MOUSE_MOVE,
                                        _cb_link_move, obj);
-        if ((!popup_exists) && link_is_email(sd->link.string))
-          {
-             gravatar_tooltip(o, sd->config, sd->link.string);
-          }
+
      }
 }
 
@@ -1219,16 +1145,6 @@ _remove_links(Termio *sd, Evas_Object *obj)
 
              ox += sd->mouse.cx * sd->font.chw;
              oy += sd->mouse.cy * sd->font.chh;
-#if (ELM_VERSION_MAJOR > 1) || (ELM_VERSION_MINOR >= 8)
-                       xwin = elm_win_window_id_get(sd->win);
-# if (ELM_VERSION_MAJOR > 1) || ((ELM_VERSION_MAJOR == 1) && (ELM_VERSION_MINOR > 8)) // not a typo
-                       if (strstr(ecore_evas_engine_name_get(ecore_evas_ecore_evas_get(evas_object_evas_get(sd->win))), "wayland"))
-                         xwin = ((uint64_t)xwin << 32) + (uint64_t)getpid();
-# endif
-#else
-                       xwin = elm_win_xwindow_get(sd->win);
-#endif
-             ty_dbus_link_mouseout(xwin, sd->link.string, ox, oy);
           }
         free(sd->link.string);
         sd->link.string = NULL;
@@ -1247,49 +1163,7 @@ _remove_links(Termio *sd, Evas_Object *obj)
 static void
 _smart_media_clicked(void *data, Evas_Object *obj, void *info EINA_UNUSED)
 {
-//   Termio *sd = evas_object_smart_data_get(data);
-   Termblock *blk;
-   const char *file = media_get(obj);
-   if (!file) return;
-   blk = evas_object_data_get(obj, "blk");
-   if (blk)
-     {
-        if (blk->link)
-          {
-             int type = media_src_type_get(blk->link);
-             Config *config = termio_config_get(data);
 
-             if (config)
-               {
-                  if ((!config->helper.inline_please) ||
-                      (!((type == MEDIA_TYPE_IMG)  || (type == MEDIA_TYPE_SCALE) ||
-                         (type == MEDIA_TYPE_EDJE) || (type == MEDIA_TYPE_MOV))))
-                    {
-                       const char *cmd = NULL;
-
-                       file = blk->link;
-                       if ((config->helper.local.general) &&
-                           (config->helper.local.general[0]))
-                         cmd = config->helper.local.general;
-                       if (cmd)
-                         {
-                            char buf[PATH_MAX], *escaped;
-
-                            escaped = ecore_file_escape_name(file);
-                            if (escaped)
-                              {
-                                 snprintf(buf, sizeof(buf), "%s %s", cmd, escaped);
-                                 ecore_exe_run(buf, NULL);
-                                 free(escaped);
-                              }
-                            return;
-                         }
-                    }
-                  file = blk->link;
-               }
-          }
-     }
-   evas_object_smart_callback_call(data, "popup", (void *)file);
 }
 
 static void
@@ -1819,10 +1693,6 @@ _block_edje_activate(Evas_Object *obj, Termblock *blk)
 static void
 _block_media_activate(Evas_Object *obj, Termblock *blk)
 {
-   Termio *sd = evas_object_smart_data_get(obj);
-   Media_Type type;
-   int media = MEDIA_STRETCH;
-   Evas_Object *mctrl;
 
    EINA_SAFETY_ON_NULL_RETURN(sd);
 
@@ -2231,7 +2101,7 @@ err:
 static void
 _sel_set(Termio *sd, Eina_Bool enable)
 {
-   if (sd->pty->selection.is_active == enable) return;
+   if (!sd->pty || sd->pty->selection.is_active == enable) return;
    sd->pty->selection.is_active = enable;
    if (enable)
      evas_object_smart_callback_call(sd->win, "selection,on", NULL);
@@ -5039,10 +4909,12 @@ _smart_size(Evas_Object *obj, int w, int h, Eina_Bool force)
                                        sd->font.chw * sd->grid.w,
                                        sd->font.chh * sd->grid.h);
    _sel_set(sd, EINA_FALSE);
-   termpty_resize(sd->pty, w, h);
+   if (sd->pty) {
+	   termpty_resize(sd->pty, w, h);
+	   _smart_calculate(obj);
+	   _smart_apply(obj);
+   }
 
-   _smart_calculate(obj);
-   _smart_apply(obj);
    evas_event_thaw(evas_object_evas_get(obj));
 }
 
@@ -5225,7 +5097,9 @@ _smart_add(Evas_Object *obj)
              imf_info = ecore_imf_context_info_by_id_get(imf_id);
              if ((!imf_info->canvas_type) ||
                  (strcmp(imf_info->canvas_type, "evas") == 0))
+             {
                sd->khdl.imf = ecore_imf_context_add(imf_id);
+             }
              else
                {
                   imf_id = ecore_imf_context_default_id_by_canvas_type_get("evas");
@@ -5260,9 +5134,12 @@ _smart_add(Evas_Object *obj)
         ecore_imf_context_input_panel_return_key_type_set
           (sd->khdl.imf, ECORE_IMF_INPUT_PANEL_RETURN_KEY_TYPE_DEFAULT);
 imf_done:
+
         if (sd->khdl.imf) DBG("Ecore IMF Setup");
         else WRN(_("Ecore IMF failed"));
      }
+
+   termio_config_update(obj);
    terms = eina_list_append(terms, obj);
 }
 

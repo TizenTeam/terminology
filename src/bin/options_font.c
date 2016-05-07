@@ -1,6 +1,7 @@
 #include "private.h"
 
 #include <Elementary.h>
+#include "E17Hacks.h"
 #include "config.h"
 #include "termio.h"
 #include "options.h"
@@ -420,7 +421,7 @@ options_font(Evas_Object *opbox, Evas_Object *term)
 
    /* Bitmaps */
    snprintf(buf, sizeof(buf), "%s/fonts", elm_app_data_dir_get());
-   files = ecore_file_ls(buf);
+   files = NULL; //ecore_file_ls(buf);
    if (files)
      {
         grp_it = elm_genlist_item_append(o, it_group, _("Bitmap"), NULL,

@@ -14,11 +14,24 @@
 
 extern int _log_domain;
 
+#include <dlog.h>
+
+/*
 #define CRITICAL(...) EINA_LOG_DOM_CRIT(_log_domain, __VA_ARGS__)
 #define ERR(...)      EINA_LOG_DOM_ERR(_log_domain, __VA_ARGS__)
 #define WRN(...)      EINA_LOG_DOM_WARN(_log_domain, __VA_ARGS__)
 #define INF(...)      EINA_LOG_DOM_INFO(_log_domain, __VA_ARGS__)
 #define DBG(...)      EINA_LOG_DOM_DBG(_log_domain, __VA_ARGS__)
+*/
+
+#define CRITICAL(...) dlog_print(DLOG_FATAL, "TERM_THREE", __VA_ARGS__)
+#define ERR(...)      dlog_print(DLOG_ERROR, "TERM_THREE", __VA_ARGS__)
+#define WRN(...)      dlog_print(DLOG_WARN,  "TERM_THREE", __VA_ARGS__)
+#define INF(...)      dlog_print(DLOG_INFO,  "TERM_THREE", __VA_ARGS__)
+#define DBG(...)      dlog_print(DLOG_DEBUG, "TERM_THREE", __VA_ARGS__)
+
+
+
 
 #ifndef MIN
 # define MIN(x, y) (((x) > (y)) ? (y) : (x))
