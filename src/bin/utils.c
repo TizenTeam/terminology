@@ -6,6 +6,7 @@
 #include <Edje.h>
 #include <Efreet.h>
 #include <Elementary.h>
+#include "E17Hacks.h"
 
 const char *
 theme_path_get(const char *name)
@@ -21,6 +22,7 @@ theme_path_get(const char *name)
    snprintf(path2, sizeof(path2) - 1, "%s/terminology/themes/%s",
             efreet_config_home_get(), name);
 
+   DBG("Looking for themes at %s and %s", path1, path2);
    if (stat(path1, &s1) < 0) return path2;
    if (stat(path2, &s2) < 0) return path1;
 

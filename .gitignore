@@ -93,3 +93,4 @@ Makefile.in
 /terminology.spec
 /terminology_config.h
 /terminology_config.h.in
+/Debug

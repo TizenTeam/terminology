@@ -2,6 +2,9 @@
 
 #include <Elementary.h>
 #include <Efreet.h>
+#include "E17Hacks.h"
+#include "Ecore_File_Hack.h"
+#include "Eet_Hack.h"
 #include "config.h"
 #include "main.h"
 #include "col.h"
@@ -28,8 +31,8 @@ config_init(void)
    Eet_Data_Descriptor_Class eddkc;
    char path[PATH_MAX] = {};
 
-   elm_need_efreet();
-   efreet_init();
+   //elm_need_efreet();
+   //efreet_init();
 
    snprintf(path, sizeof(path) -1, "%s/terminology/themes",
             _config_home_get());
@@ -172,7 +175,7 @@ config_shutdown(void)
         eet_data_descriptor_free(edd_color);
         edd_color = NULL;
      }
-   efreet_shutdown();
+   //efreet_shutdown();
 }
 
 void

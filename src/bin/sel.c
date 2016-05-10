@@ -3,6 +3,7 @@
 #include <Elementary.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "E17Hacks.h"
 #include "sel.h"
 #include "config.h"
 #include "utils.h"
