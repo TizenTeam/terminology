@@ -2761,6 +2761,24 @@ _term_is_focused(Term *term)
    return tc->is_focused;
 }
 
+void main_term_fullscreen(Win *wn, Term *term)
+{
+    int screen_w, screen_h;
+    int char_w, char_h;
+
+    termio_size_get(term->term, &char_w, &char_h);
+    DBG(_("Termio size %dx%d"), char_w, char_h);
+
+    elm_win_screen_size_get(wn->win, NULL, NULL, &screen_w, &screen_h);
+    char_w = screen_w / term->step_x;
+    char_h = screen_h / term->step_y;
+    // TODO: Detect if on-screen keyboard takes over some of that screen space.
+    DBG(_("Screen size %dx%d char size is %dx%d, term size is %dx%d"), screen_w, screen_h, term->step_x, term->step_y, char_w, char_h);
+    termio_size_set(term->term, char_w, char_h);
+    termio_size_get(term->term, &char_w, &char_h);
+    DBG(_("Termio size %dx%d"), char_w, char_h);
+}
+
 void change_theme(Evas_Object *win, Config *config)
 {
    const Eina_List *terms, *l;
