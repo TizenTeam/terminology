@@ -881,6 +881,7 @@ remote:
    win_sizing_handle(wn);
    win = win_evas_object_get(wn);
    evas_object_show(win);
+   finalize_window(wn, term);
    if (startup_split)
      {
 #if (ECORE_VERSION_MAJOR > 1) || (ECORE_VERSION_MINOR >= 8)
