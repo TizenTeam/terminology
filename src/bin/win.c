@@ -661,10 +661,12 @@ _cb_menu_popup(void *data, Evas_Object *obj, void *event_info)
 	if (!text) return;
 
 	DBG(_("Selected menu option: %s"), text);
+	Term * term = win_focused_term_get(wn);
 	if (!strcmp(text, "Exit")) {
-		Term * term = _find_term_under_mouse(wn);
 		main_close(wn->win, term->term);
+		return;
 	}
+	finalize_window(wn, term);
 }
 
 static void
@@ -765,6 +767,7 @@ tg_win_add(const char *name, const char *role, const char *title, const char *ic
    if (!title) title = "Terminology";
    if (!icon_name) icon_name = "Terminology";
 
+   /*
    win = elm_win_add(NULL, name, ELM_WIN_BASIC);
    elm_win_title_set(win, title);
    elm_win_icon_name_set(win, icon_name);
@@ -777,6 +780,10 @@ tg_win_add(const char *name, const char *role, const char *title, const char *ic
             elm_app_data_dir_get());
    evas_object_image_file_set(o, buf, NULL);
    elm_win_icon_object_set(win, o);
+   */
+
+   win = elm_win_util_standard_add(name, title);
+   elm_win_autodel_set(win, EINA_TRUE);
 
    return win;
 }
@@ -2838,7 +2845,7 @@ void main_term_fullscreen(Win *wn, Term *term)
 void finalize_window(Win *wn, Term *term)
 {
 	int w = -1, h = -1;
-	elm_win_size_base_get(term->term, &w, &h);
+	elm_win_size_base_get(wn->conform, &w, &h);
 	DBG(_("Conform %x size %dx%d"), term->term, w, h);
 	// DBG("vk %d", elm_obj_win_keyboard_mode_get());
 }
