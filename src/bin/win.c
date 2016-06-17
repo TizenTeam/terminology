@@ -630,7 +630,6 @@ _cb_menu(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *ev
 {
    Win *wn = data;
 
-   DBG(_("Menu button callback"));
    if (!wn->popup)
 	   wn->popup = create_menu_popup(wn);
    else {
@@ -2563,6 +2562,9 @@ _tabs_set_title(Term_Container *tc, Term_Container *child,
      {
         _tabs_refresh(tabs);
      }
+   w = 0; h = 0;
+   evas_object_geometry_get(sp->wn->conform, NULL, NULL, &w, &h);
+   DBG("_cb_size_track (%dx%d)", w, h);
 }
 
 static void
@@ -2832,7 +2834,8 @@ void main_term_fullscreen(Win *wn, Term *term)
     termio_size_get(term->term, &char_w, &char_h);
     DBG(_("Termio size %dx%d"), char_w, char_h);
 
-    elm_win_screen_size_get(wn->win, NULL, NULL, &screen_w, &screen_h);
+    // elm_win_screen_size_get(wn->win, NULL, NULL, &screen_w, &screen_h);
+    evas_object_geometry_get(wn->conform, NULL, NULL, &screen_w, &screen_h);
     char_w = screen_w / term->step_x;
     char_h = screen_h / term->step_y;
     // TODO: Detect if on-screen keyboard takes over some of that screen space.
