@@ -1,3 +1,4 @@
+#ifndef __TIZEN__
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -29,3 +30,4 @@ main(int argc, char **argv)
      }
    return 0;
 }
+#endif

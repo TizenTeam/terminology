@@ -1,3 +1,4 @@
+#ifndef __TIZEN__
 #include "private.h"
 
 #include <Elementary.h>

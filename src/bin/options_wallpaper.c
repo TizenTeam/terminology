@@ -1,3 +1,4 @@
+#ifndef __TIZEN__
 #include "private.h"
 
 #include <Elementary.h>
@@ -531,3 +532,4 @@ options_wallpaper_clear(void)
         _system_path = NULL;
      }
 }
+#endif
