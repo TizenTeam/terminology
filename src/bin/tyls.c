@@ -1,3 +1,4 @@
+#ifndef __TIZEN__
 #include <Eina.h>
 #include <Ecore.h>
 #include <Evas.h>
@@ -839,3 +840,4 @@ main(int argc, char **argv)
    eina_shutdown();
    return 0;
 }
+#endif

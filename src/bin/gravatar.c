@@ -1,3 +1,4 @@
+#ifndef __TIZEN__
 #include "private.h"
 
 #include <Elementary.h>
@@ -113,3 +114,4 @@ gravatar_shutdown(void)
    _gravatar_log_dom = -1;
 }
 
+#endif

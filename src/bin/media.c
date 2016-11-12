@@ -1,3 +1,4 @@
+#ifndef __TIZEN__
 #include "private.h"
 
 #include <Elementary.h>
@@ -1436,3 +1437,4 @@ media_control_get(Evas_Object *obj)
    if (!sd) return NULL;
    return sd->o_ctrl;
 }
+#endif
