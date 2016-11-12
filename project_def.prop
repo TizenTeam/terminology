@@ -3,8 +3,10 @@ APPNAME = termthree
 type = app
 profile = mobile-2.4
 
-USER_SRCS = src/termthree.c
-USER_DEFS =
+USER_SRCS = src/*.c
+USER_SRCS += src/*/*.c src/*/*/*.c
+USER_DEFS =  __TIZEN__=1
+USER_DEFS += PACKAGE_VERSION=0.0
 USER_INC_DIRS = inc
 USER_OBJS =
 USER_LIBS =
