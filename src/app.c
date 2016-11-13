@@ -1,4 +1,4 @@
-#include "termthree.h"
+#include "app.h"
 
 typedef struct appdata {
 	Evas_Object *win;
