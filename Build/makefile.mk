@@ -65,8 +65,8 @@ ifeq ($(strip $(APPTYPE)),sharedLib)
 EXT_OP := -fPIC
 endif
 
-C_OPT := $(COMPILE_FLAGS) $(TC_COMPILER_MISC) $(RS_COMPILER_MISC) $(EXT_OP) --sysroot="$(SYSROOT)" -Werror-implicit-function-declaration $(M_OPT)
-CPP_OPT := $(CPP_COMPILE_FLAGS) $(TC_COMPILER_MISC) $(RS_COMPILER_MISC) $(EXT_OP) --sysroot="$(SYSROOT)" -Werror-implicit-function-declaration $(M_OPT)
+C_OPT := $(COMPILE_FLAGS) $(TC_COMPILER_MISC) $(RS_COMPILER_MISC) $(EXT_OP) --sysroot="$(SYSROOT)"  $(M_OPT)
+CPP_OPT := $(CPP_COMPILE_FLAGS) $(TC_COMPILER_MISC) $(RS_COMPILER_MISC) $(EXT_OP) --sysroot="$(SYSROOT)"  $(M_OPT)
 C_OPT_FILE := $(PLATFORM_INCS_FILE)
 
 OBJS := #
@@ -109,7 +109,7 @@ $(APPFILE) : $(OBJS) $(UOBJS)
 	@echo '  Building target: $@'
 	@echo '  Invoking: C/C++ Linker'
 	$(call MAKEDIRS,$(@D))
-	$(CXX) -o $(APPFILE) $(OBJS) $(UOBJS) $(LIBPATHS) -Xlinker --as-needed $(LIBS) $(LINK_FLAGS) $(TC_LINKER_MISC) $(RS_LINKER_MISC) -pie -lpthread --sysroot="$(SYSROOT)" -Xlinker --version-script="$(PROJ_ROOT)/.exportMap" $(RS_LIB_PATHS) $(RS_LIBRARIES) -Xlinker -rpath="/opt/usr/apps/$(APPID)/lib" -Werror-implicit-function-declaration
+	$(CXX) -o $(APPFILE) $(OBJS) $(UOBJS) $(LIBPATHS) -Xlinker --as-needed $(LIBS) $(LINK_FLAGS) $(TC_LINKER_MISC) $(RS_LINKER_MISC) -pie -lpthread --sysroot="$(SYSROOT)" -Xlinker --version-script="$(PROJ_ROOT)/.exportMap" $(RS_LIB_PATHS) $(RS_LIBRARIES) -Xlinker -rpath="/opt/usr/apps/$(APPID)/lib" 
 	@echo '  Finished building target: $@'
 endif
 ifeq ($(strip $(APPTYPE)),staticLib)

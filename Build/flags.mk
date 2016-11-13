@@ -16,9 +16,9 @@ LINK_OP := -s
 endif
 endif
 
-COMPILE_FLAGS = $(DEBUG_OP) $(OPTIMIZATION_OP) -Wall -c -fmessage-length=0
+COMPILE_FLAGS = $(DEBUG_OP) $(OPTIMIZATION_OP) -c -fmessage-length=0
 
-CPP_COMPILE_FLAGS = $(CPP_DEBUG_OP) $(CPP_OPTIMIZATION_OP) -Wall -p -pg -c -fmessage-length=0
+CPP_COMPILE_FLAGS = $(CPP_DEBUG_OP) $(CPP_OPTIMIZATION_OP) -p -pg -c -fmessage-length=0
 
 LINK_FLAGS = -L"$(PROJ_PATH)/lib" -Wl,--no-undefined $(LINK_OP)
 
