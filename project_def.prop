@@ -1,4 +1,4 @@
-APPNAME = termthree
+APPNAME = terminology
 
 type = app
 profile = mobile-2.4
@@ -6,8 +6,9 @@ profile = mobile-2.4
 USER_SRCS = src/*.c
 USER_SRCS += src/*/*.c src/*/*/*.c
 USER_DEFS =  __TIZEN__=1
-USER_DEFS += PACKAGE_VERSION=0.0
+USER_DEFS += PACKAGE_VERSION="0.9"
 USER_INC_DIRS = inc
 USER_OBJS =
 USER_LIBS =
 USER_EDCS =
+USER_LIB_DIRS = lib 
