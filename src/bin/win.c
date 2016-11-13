@@ -5,6 +5,8 @@
 #include "config.h"
 #include "main.h"
 #include "miniview.h"
+#include "gravatar.h"
+#include "media.h"
 #include "termio.h"
 #include "utils.h"
 #include "private.h"
@@ -92,6 +94,9 @@ struct _Term
    Evas_Object *tab_region_base;
    Evas_Object *tab_region_bg;
    Eina_List   *popmedia_queue;
+//#ifndef __TIZEN__
+   Media_Type   poptype, mediatype;
+//#endif
    Tabbar       tabbar;
    int          step_x, step_y, min_w, min_h, req_w, req_h;
    struct {
@@ -624,18 +629,19 @@ main_trans_update(const Config *config)
           }
      }
 }
-
+#ifdef __TIZEN__
 static void
 _cb_menu(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
 {
    Win *wn = data;
-
+#ifndef __TIZEN__
    if (!wn->popup)
 	   wn->popup = create_menu_popup(wn);
    else {
 	   evas_object_del(wn->popup);
 	   wn->popup = NULL;
    }
+#endif
 
 }
 
@@ -658,7 +664,7 @@ _cb_menu_popup(void *data, Evas_Object *obj, void *event_info)
 	wn->popup = NULL;
 
 	if (!text) return;
-
+#ifndef __TIZEN__
 	DBG(_("Selected menu option: %s"), text);
 	Term * term = win_focused_term_get(wn);
 	if (!strcmp(text, "Exit")) {
@@ -666,6 +672,7 @@ _cb_menu_popup(void *data, Evas_Object *obj, void *event_info)
 		return;
 	}
 	finalize_window(wn, term);
+#endif
 }
 
 static void
@@ -680,7 +687,7 @@ _cb_popup_back(void *data, Evas_Object *obj, void *event_info)
 		DBG(_("Popup dismissed"));
 	}
 }
-
+#endif
 
 static void
 _cb_del(void *data, Evas *e EINA_UNUSED,
@@ -766,7 +773,7 @@ tg_win_add(const char *name, const char *role, const char *title, const char *ic
    if (!title) title = "Terminology";
    if (!icon_name) icon_name = "Terminology";
 
-   /*
+#ifndef __TIZEN__
    win = elm_win_add(NULL, name, ELM_WIN_BASIC);
    elm_win_title_set(win, title);
    elm_win_icon_name_set(win, icon_name);
@@ -779,10 +786,11 @@ tg_win_add(const char *name, const char *role, const char *title, const char *ic
             elm_app_data_dir_get());
    evas_object_image_file_set(o, buf, NULL);
    elm_win_icon_object_set(win, o);
-   */
-
+#else
    win = elm_win_util_standard_add(name, title);
    elm_win_autodel_set(win, EINA_TRUE);
+#endif
+
 
    return win;
 }
@@ -976,7 +984,7 @@ _term_container_is_splittable(Term_Container *tc, Eina_Bool is_horizontal)
 {
    int w = 0, h = 0, c_w = 0, c_h = 0;
    Term *tm;
-
+#ifndef __TIZEN__
    tm = tc->term_first(tc);
    evas_object_geometry_get(tm->bg, NULL, NULL, &w, &h);
    evas_object_textgrid_cell_size_get(termio_textgrid_get(tm->termio),
@@ -991,6 +999,7 @@ _term_container_is_splittable(Term_Container *tc, Eina_Bool is_horizontal)
         if (c_w * 2 > w)
            return EINA_FALSE;
      }
+#endif
    return EINA_TRUE;
 }
 
@@ -1612,7 +1621,9 @@ _cb_size_hint(void *data,
    Evas_Coord mw, mh, rw, rh, w = 0, h = 0;
 
    evas_object_size_hint_min_get(obj, &mw, &mh);
+#ifndef __TIZEN__
    evas_object_size_hint_request_get(obj, &rw, &rh);
+#endif
    edje_object_size_min_calc(term->base, &w, &h);
    evas_object_size_hint_min_set(term->base, w, h);
    edje_object_size_min_calc(term->bg, &w, &h);
@@ -1951,7 +1962,9 @@ _cb_tab_selector_show(Tabs *tabs, Tab_Item *to_item)
    tabs->selector_bg = edje_object_add(evas_object_evas_get(tc->wn->win));
    theme_apply(tabs->selector_bg, wn->config, "terminology/sel/base");
 
+#ifndef __TIZEN__
    evas_object_geometry_set(tabs->selector_bg, x, y, w, h);
+#endif
    evas_object_hide(o);
 
    if (wn->config->translucent)
@@ -2352,7 +2365,9 @@ _tabs_swallow(Term_Container *tc, Term_Container *orig,
         evas_object_hide(o);
 
         o = new_child->get_evas_object(new_child);
+#ifndef __TIZEN__
         evas_object_geometry_set(o, x, y, w, h);
+#endif
         evas_object_show(o);
 
         /* XXX: need to refresh */
@@ -2398,7 +2413,9 @@ _tab_new_cb(void *data,
    evas_object_geometry_get(o, &x, &y, &w, &h);
    evas_object_hide(o);
    o = tc_new->get_evas_object(tc_new);
+#ifndef __TIZEN__
    evas_object_geometry_set(o, x, y, w, h);
+#endif
    evas_object_show(o);
    tabs->current = tab_item;
    /* XXX: need to refresh */
@@ -2526,7 +2543,7 @@ _tabs_set_title(Term_Container *tc, Term_Container *child,
    Tabs *tabs;
    Tab_Item *tab_item;
    Eina_List *l;
-
+#ifndef __TIZEN__
    assert (tc->type == TERM_CONTAINER_TYPE_TABS);
    tabs = (Tabs*) tc;
 
@@ -2565,6 +2582,7 @@ _tabs_set_title(Term_Container *tc, Term_Container *child,
    w = 0; h = 0;
    evas_object_geometry_get(sp->wn->conform, NULL, NULL, &w, &h);
    DBG("_cb_size_track (%dx%d)", w, h);
+#endif
 }
 
 static void
@@ -2826,11 +2844,14 @@ _term_is_focused(Term *term)
    return tc->is_focused;
 }
 
+#ifdef __TIZEN__
 void main_term_fullscreen(Win *wn, Term *term)
 {
     int screen_w, screen_h;
     int char_w, char_h;
-
+#ifdef __TIZEN__
+#warning "TODO:"
+#else
     termio_size_get(term->term, &char_w, &char_h);
     DBG(_("Termio size %dx%d"), char_w, char_h);
 
@@ -2842,6 +2863,7 @@ void main_term_fullscreen(Win *wn, Term *term)
     DBG(_("Screen size %dx%d char size is %dx%d, term size is %dx%d"), screen_w, screen_h, term->step_x, term->step_y, char_w, char_h);
     termio_size_set(term->term, char_w, char_h);
     termio_size_get(term->term, &char_w, &char_h);
+#endif
     DBG(_("Termio size %dx%d"), char_w, char_h);
 }
 
@@ -2849,9 +2871,12 @@ void finalize_window(Win *wn, Term *term)
 {
 	int w = -1, h = -1;
 	elm_win_size_base_get(wn->conform, &w, &h);
+#ifndef __TIZEN__
 	DBG(_("Conform %x size %dx%d"), term->term, w, h);
 	// DBG("vk %d", elm_obj_win_keyboard_mode_get());
+#endif
 }
+#endif
 
 void change_theme(Evas_Object *win, Config *config)
 {
@@ -2996,6 +3021,7 @@ static void
 _cb_media_loop(void *data,
                Evas_Object *obj EINA_UNUSED, void *info EINA_UNUSED)
 {
+#ifndef __TIZEN__
    Term *term = data;
 
    if (term->popmedia_queue)
@@ -3003,8 +3029,11 @@ _cb_media_loop(void *data,
         if (term->popmedia) media_play_set(term->popmedia, EINA_FALSE);
         edje_object_signal_emit(term->bg, "popmedia,off", "terminology");
      }
+#endif
+
 }
 
+#ifndef __TIZEN__
 static void
 _popmedia_show(Term *term, const char *src, Media_Type type)
 {
@@ -3054,6 +3083,7 @@ _popmedia_show(Term *term, const char *src, Media_Type type)
          break;
      }
 }
+#endif
 
 #ifdef HAVE_ECORE_CON_URL_HEAD
 typedef struct _Ty_Http_Head {
@@ -3160,6 +3190,7 @@ error:
 static void
 _popmedia(Term *term, const char *src)
 {
+#ifndef __TIZEN__
    Media_Type type;
    Config *config = termio_config_get(term->termio);
 
@@ -3199,6 +3230,7 @@ error:
      {
         _popmedia_show(term, src, type);
      }
+#endif
 }
 
 static void
@@ -3645,7 +3677,65 @@ _cb_media_del(void *data, Evas *e EINA_UNUSED,
 static void
 _term_media_update(Term *term, const Config *config)
 {
+#ifndef __TIZEN__
+   if ((config->background) && (config->background[0]))
+     {
+        Evas_Object *o;
+        Media_Type type;
 
+        if (term->media)
+          {
+             evas_object_event_callback_del(term->media,
+                                            EVAS_CALLBACK_DEL,
+                                            _cb_media_del);
+             evas_object_del(term->media);
+          }
+        type = media_src_type_get(config->background);
+        term->media = o = media_add(term->wn->win,
+                                    config->background, config,
+                                    MEDIA_BG, type);
+        evas_object_event_callback_add(o, EVAS_CALLBACK_DEL,
+                                       _cb_media_del, term);
+        edje_object_part_swallow(term->base, "terminology.background", o);
+        evas_object_show(o);
+        term->mediatype = type;
+        switch (type)
+          {
+           case MEDIA_TYPE_IMG:
+              edje_object_signal_emit(term->bg, "media,image", "terminology");
+              edje_object_signal_emit(term->base, "media,image", "terminology");
+              break;
+           case MEDIA_TYPE_SCALE:
+              edje_object_signal_emit(term->bg, "media,scale", "terminology");
+              edje_object_signal_emit(term->base, "media,scale", "terminology");
+              break;
+           case MEDIA_TYPE_EDJE:
+              edje_object_signal_emit(term->bg, "media,edje", "terminology");
+              edje_object_signal_emit(term->base, "media,edje", "terminology");
+              break;
+           case MEDIA_TYPE_MOV:
+              edje_object_signal_emit(term->bg, "media,movie", "terminology");
+              edje_object_signal_emit(term->base, "media,movie", "terminology");
+              break;
+           case MEDIA_TYPE_UNKNOWN:
+           default:
+              break;
+          }
+     }
+   else
+     {
+        if (term->media)
+          {
+             evas_object_event_callback_del(term->media,
+                                            EVAS_CALLBACK_DEL,
+                                            _cb_media_del);
+             edje_object_signal_emit(term->bg, "media,off", "terminology");
+             edje_object_signal_emit(term->base, "media,off", "terminology");
+             evas_object_del(term->media);
+             term->media = NULL;
+          }
+     }
+#endif
 }
 
 void
@@ -3669,13 +3759,18 @@ main_media_update(const Config *config)
 void
 main_media_mute_update(const Config *config)
 {
+   Win *wn;
+   Term *term;
+   Eina_List *l, *ll;
 
    EINA_LIST_FOREACH(wins, l, wn)
      {
         EINA_LIST_FOREACH(wn->terms, ll, term)
           {
+#ifndef __TIZEN__
              if (term->media) media_mute_set(term->media, config->mute);
              termio_media_mute_set(term->termio, config->mute);
+#endif
           }
      }
 }
@@ -3683,13 +3778,18 @@ main_media_mute_update(const Config *config)
 void
 main_media_visualize_update(const Config *config)
 {
+   Win *wn;
+   Term *term;
+   Eina_List *l, *ll;
 
    EINA_LIST_FOREACH(wins, l, wn)
      {
         EINA_LIST_FOREACH(wn->terms, ll, term)
           {
+#ifndef __TIZEN__
              if (term->media) media_visualize_set(term->media, config->visualize);
              termio_media_visualize_set(term->termio, config->visualize);
+#endif
           }
      }
 }
@@ -3723,9 +3823,10 @@ main_config_sync(const Config *config)
                   w = tsize_w / mw;
                   h = tsize_h / mh;
                   evas_object_data_del(term->termio, "sizedone");
+#ifndef __TIZEN__
                   evas_object_size_hint_request_set(term->termio,
                                                     w * mw, h * mh);
-*/
+#endif
                }
           }
      }
@@ -3811,6 +3912,55 @@ _term_bg_config(Term *term)
    edje_object_part_swallow(term->base, "terminology.content", term->termio);
    edje_object_part_swallow(term->bg, "terminology.content", term->base);
    edje_object_part_swallow(term->bg, "terminology.miniview", term->miniview);
+#ifndef __TIZEN__
+   if (term->popmedia)
+     {
+        edje_object_part_swallow(term->bg, "terminology.popmedia", term->popmedia);
+        switch (term->poptype)
+          {
+           case MEDIA_TYPE_IMG:
+              edje_object_signal_emit(term->bg, "popmedia,image", "terminology");
+              break;
+           case MEDIA_TYPE_SCALE:
+              edje_object_signal_emit(term->bg, "popmedia,scale", "terminology");
+              break;
+           case MEDIA_TYPE_EDJE:
+              edje_object_signal_emit(term->bg, "popmedia,edje", "terminology");
+              break;
+           case MEDIA_TYPE_MOV:
+              edje_object_signal_emit(term->bg, "popmedia,movie", "terminology");
+              break;
+           default:
+              break;
+          }
+     }
+   if (term->media)
+     {
+        edje_object_part_swallow(term->base, "terminology.background", term->media);
+        switch (term->mediatype)
+          {
+           case MEDIA_TYPE_IMG:
+              edje_object_signal_emit(term->bg, "media,image", "terminology");
+              edje_object_signal_emit(term->base, "media,image", "terminology");
+              break;
+           case MEDIA_TYPE_SCALE:
+              edje_object_signal_emit(term->bg, "media,scale", "terminology");
+              edje_object_signal_emit(term->base, "media,scale", "terminology");
+              break;
+           case MEDIA_TYPE_EDJE:
+             edje_object_signal_emit(term->bg, "media,edje", "terminology");
+             edje_object_signal_emit(term->base, "media,edje", "terminology");
+             break;
+           case MEDIA_TYPE_MOV:
+             edje_object_signal_emit(term->bg, "media,movie", "terminology");
+             edje_object_signal_emit(term->base, "media,movie", "terminology");
+             break;
+           case MEDIA_TYPE_UNKNOWN:
+           default:
+             break;
+          }
+     }
+#endif
 
    if (_term_is_focused(term) && (_win_is_focused(term->wn)))
      {
@@ -3976,6 +4126,7 @@ term_new(Win *wn, Config *config, const char *cmd,
 
    if (!config) abort();
 
+#ifndef __TIZEN__
    /* TODO: clean up that */
    if (_win_log_dom < 0)
      {
@@ -3983,8 +4134,12 @@ term_new(Win *wn, Config *config, const char *cmd,
         if (_win_log_dom < 0)
           EINA_LOG_CRIT("Could not create logging domain '%s'.", "win");
      }
+#endif // __TIZEN__
    termpty_init();
    miniview_init();
+#ifndef __TIZEN__
+   gravatar_init();
+#endif
 
    term->wn = wn;
    term->hold = hold;
@@ -4003,6 +4158,15 @@ term_new(Win *wn, Config *config, const char *cmd,
    term->bg = o = edje_object_add(canvas);
    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+#ifndef __TIZEN__
+   if (!theme_apply(o, config, "terminology/background"))
+     {
+        CRITICAL(_("Couldn't find terminology theme! Forgot 'make install'?"));
+        evas_object_del(term->bg);
+        free(term);
+        return NULL;
+     }
+#endif
 
    theme_auto_reload_enable(o);
    evas_object_data_set(o, "theme_reload_func", _term_bg_config);
@@ -4123,7 +4287,9 @@ windows_free(void)
 
    /* TODO: ugly */
    if (_win_log_dom < 0) return;
+#ifndef __TIZEN__
    eina_log_domain_unregister(_win_log_dom);
+#endif
    _win_log_dom = -1;
 }
 
@@ -4155,6 +4321,8 @@ for_each_term_do(Win *wn, For_Each_Term cb, void *data)
      }
    return res;
 }
+
+#ifdef __TIZEN__
 
 static void
 move_menu_popup(Evas_Object *parent, Evas_Object *obj)
@@ -4193,8 +4361,12 @@ create_menu_popup(Win *wn)
 	elm_ctxpopup_item_append(popup, "Exit\0", NULL, _cb_menu_popup, wn);
 
 	move_menu_popup(wn->win, popup);
+#ifndef __TIZEN__
+
 	eext_object_event_callback_add(wn->win, EEXT_CALLBACK_BACK, _cb_popup_back, wn);
 	evas_object_show(popup);
-
+#endif
 	return popup;
 }
+#endif
+

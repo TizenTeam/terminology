@@ -1,9 +1,13 @@
-#ifndef __TIZEN__
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+
+
+#ifdef __TIZEN__
+#define main tyq_main
+#endif
 
 int
 main(int argc, char **argv)
@@ -30,4 +34,3 @@ main(int argc, char **argv)
      }
    return 0;
 }
-#endif

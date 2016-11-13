@@ -1,4 +1,4 @@
-#ifndef __TIZEN__
+#include "private.h" // TODO
 #include <Eina.h>
 #include <Ecore.h>
 #include <Evas.h>
@@ -27,6 +27,11 @@ Evas *evas = NULL;
 Evas_Object *o = NULL;
 struct termios told, tnew;
 int tw = 0, th = 0;
+
+
+#ifdef __TIZEN_
+#define main tycat_main
+#endif
 
 static int
 echo_off(void)
@@ -719,6 +724,7 @@ list_dir(const char *dir, Tyls_Options *options)
    EINA_LIST_FREE(files, s) free(s);
 }
 
+#ifndef __TIZEN__
 int
 main(int argc, char **argv)
 {

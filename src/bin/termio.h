@@ -27,7 +27,9 @@ const char  *termio_link_get(const Evas_Object *obj);
 void         termio_mouseover_suspend_pushpop(Evas_Object *obj, int dir);
 void         termio_event_feed_mouse_in(Evas_Object *obj);
 void         termio_size_get(Evas_Object *obj, int *w, int *h);
+#ifdef __TIZEN__
 void         termio_size_set(Evas_Object *obj, int w, int h);
+#endif
 int          termio_scroll_get(Evas_Object *obj);
 void         termio_font_size_set(Evas_Object *obj, int size);
 void         termio_grid_size_set(Evas_Object *obj, int w, int h);

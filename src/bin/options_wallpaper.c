@@ -1,4 +1,3 @@
-#ifndef __TIZEN__
 #include "private.h"
 
 #include <Elementary.h>
@@ -41,6 +40,7 @@ static Ecore_Timer *_bubble_disappear;
 
 static Ecore_Thread *_thread;
 
+#ifndef __TIZEN__
 static void
 _cb_fileselector(void *data EINA_UNUSED, Evas_Object *obj, void* event)
 {
@@ -56,7 +56,7 @@ _cb_fileselector(void *data EINA_UNUSED, Evas_Object *obj, void* event)
     }
 }
 
-static Eina_Bool
+ Eina_Bool
 _cb_timer_bubble_disappear(void *data EINA_UNUSED)
 {
    evas_object_del(_bubble);

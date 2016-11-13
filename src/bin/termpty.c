@@ -24,14 +24,40 @@
 /* specific log domain to help debug only terminal code parser */
 int _termpty_log_dom = -1;
 
+#ifndef __TIZEN__
+#undef CRITICAL
+#undef ERR
+#undef WRN
+#undef INF
+#undef DBG
+
+#define CRITICAL(...) EINA_LOG_DOM_CRIT(_termpty_log_dom, __VA_ARGS__)
+#define ERR(...)      EINA_LOG_DOM_ERR(_termpty_log_dom, __VA_ARGS__)
+#define WRN(...)      EINA_LOG_DOM_WARN(_termpty_log_dom, __VA_ARGS__)
+#define INF(...)      EINA_LOG_DOM_INFO(_termpty_log_dom, __VA_ARGS__)
+#define DBG(...)      EINA_LOG_DOM_DBG(_termpty_log_dom, __VA_ARGS__)
+#endif
+
 void
 termpty_init(void)
 {
+   if (_termpty_log_dom >= 0) return;
+
+#ifndef __TIZEN__
+   _termpty_log_dom = eina_log_domain_register("termpty", NULL);
+   if (_termpty_log_dom < 0)
+     EINA_LOG_CRIT("Could not create logging domain '%s'.", "termpty");
+#endif
 }
 
 void
 termpty_shutdown(void)
 {
+   if (_termpty_log_dom < 0) return;
+#ifndef __TIZEN__
+   eina_log_domain_unregister(_termpty_log_dom);
+   _termpty_log_dom = -1;
+#endif
 }
 
 static void
@@ -175,7 +201,7 @@ _cb_fd_read(void *data, Ecore_Fd_Handler *fd_handler EINA_UNUSED)
         char *rbuf = buf;
         len = sizeof(buf) - 1;
 
-        for (i = 0; i < (int)sizeof(ty->oldbuf) && ty->oldbuf[i] & 0x80; i++)
+        for (i = 0; i < ((int)sizeof(ty->oldbuf)) && (ty->oldbuf[i]) & 0x80; i++)
           {
              *rbuf = ty->oldbuf[i];
              rbuf++;
@@ -185,7 +211,7 @@ _cb_fd_read(void *data, Ecore_Fd_Handler *fd_handler EINA_UNUSED)
         if (len <= 0) break;
 
 
-        for (i = 0; i < (int)sizeof(ty->oldbuf); i++)
+        for (i = 0; i < ((int)sizeof(ty->oldbuf)); i++)
           ty->oldbuf[i] = 0;
 
         len += rbuf - buf;
@@ -318,10 +344,12 @@ termpty_new(const char *cmd, Eina_Bool login_shell, const char *cd,
              WRN(_("Could not find shell, falling back to %s"), "/bin/sh");
              shell = "/bin/sh";
           }
+#ifdef __TIZEN__
         if (!strcmp("/bin/false", shell)) {
             WRN(_("Shell is set to /bin/false, falling back to %s"), "/bin/sh");
             shell = "/bin/sh";
         }
+#endif
      }
 
    if (!needs_shell)
@@ -737,6 +765,7 @@ termpty_backlog_length(Termpty *ty)
         screen_y += nb_lines;
         backlog_y++;
      }
+   return 0; //TODO
 }
 
 void

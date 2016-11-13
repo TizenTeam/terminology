@@ -6,7 +6,6 @@
 #include <Edje.h>
 #include <Efreet.h>
 #include <Elementary.h>
-#include "E17Hacks.h"
 
 const char *
 theme_path_get(const char *name)

@@ -1,6 +1,5 @@
 #include "private.h"
 #include <Elementary.h>
-#include "evas_textgrid.eo.legacy_Hack.h"
 #include "termio.h"
 #include "termpty.h"
 #include "termptydbl.h"
@@ -9,6 +8,20 @@
 #include "termptyext.h"
 #if defined(SUPPORT_80_132_COLUMNS)
 #include "termio.h"
+#endif
+
+#ifndef __TIZEN__
+#undef CRITICAL
+#undef ERR
+#undef WRN
+#undef INF
+#undef DBG
+
+#define CRITICAL(...) EINA_LOG_DOM_CRIT(_termpty_log_dom, __VA_ARGS__)
+#define ERR(...)      EINA_LOG_DOM_ERR(_termpty_log_dom, __VA_ARGS__)
+#define WRN(...)      EINA_LOG_DOM_WARN(_termpty_log_dom, __VA_ARGS__)
+#define INF(...)      EINA_LOG_DOM_INFO(_termpty_log_dom, __VA_ARGS__)
+#define DBG(...)      EINA_LOG_DOM_DBG(_termpty_log_dom, __VA_ARGS__)
 #endif
 
 #define ST 0x9c // String Terminator
@@ -1222,7 +1235,11 @@ _handle_xterm_777_command(Termpty *ty EINA_UNUSED,
         return;
      }
 
+#ifndef __TIZEN__
+   if (!elm_need_sys_notify())
+#else
    if (TRUE)
+#endif
      {
         ERR("no elementary system notification support");
         return;
@@ -1241,11 +1258,11 @@ _handle_xterm_777_command(Termpty *ty EINA_UNUSED,
    *title_end = '\0';
    message = title_end + 1;
 
-/*
+#ifndef __TIZEN__
    elm_sys_notify_send(0, "dialog-information", title, message,
                        ELM_SYS_NOTIFY_URGENCY_NORMAL, -1,
                        NULL, NULL);
-*/
+#endif
    *cmd_end = ';';
    *title_end = ';';
 #endif

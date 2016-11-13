@@ -1,4 +1,3 @@
-#ifndef __TIZEN__
 #include "private.h"
 
 #include <Elementary.h>
@@ -32,6 +31,8 @@ typedef struct _Gravatar {
      Config *config;
 } Gravatar;
 
+
+#ifndef __TIZEN__
 static Evas_Object *
 _tooltip_content(void *data,
                  Evas_Object *obj,

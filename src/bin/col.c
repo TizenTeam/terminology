@@ -1,6 +1,5 @@
 #include "private.h"
 #include <Elementary.h>
-#include "evas_textgrid.eo.legacy_Hack.h"
 #include "config.h"
 #include "col.h"
 
@@ -391,7 +390,7 @@ colors_term_init(Evas_Object *textgrid, Evas_Object *bg, Config *config)
    for (c = 0; c < (4 * 12); c++)
      {
         n = c + (24 * (c / 24));
-        if (config && config->colors_use)
+        if (config && config->colors_use) //TODO: upstream
           {
              r = config->colors[c].r;
              g = config->colors[c].g;

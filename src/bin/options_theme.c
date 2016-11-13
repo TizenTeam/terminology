@@ -2,7 +2,6 @@
 
 #include <Elementary.h>
 #include <Efreet.h>
-#include "E17Hacks.h"
 #include "config.h"
 #include "termio.h"
 #include "options.h"
@@ -133,13 +132,13 @@ options_theme(Evas_Object *opbox, Evas_Object *term)
    elm_gengrid_item_size_set(o, scale * 160, scale * 180);
 
    snprintf(buf, sizeof(buf), "%s/themes", data_dir);
-   files = NULL; //ecore_file_ls(buf);
+   files = ecore_file_ls(buf);
    if (files)
      files = eina_list_sort(files, eina_list_count(files),
                             _cb_op_theme_sort);
 
    snprintf(buf, sizeof(buf), "%s/terminology/themes", config_dir);
-   userfiles = NULL; //ecore_file_ls(buf);
+   userfiles = ecore_file_ls(buf);
    if (userfiles)
      userfiles = eina_list_sort(userfiles, eina_list_count(userfiles),
                             _cb_op_theme_sort);

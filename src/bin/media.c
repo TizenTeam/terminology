@@ -1,4 +1,3 @@
-#ifndef __TIZEN__
 #include "private.h"
 
 #include <Elementary.h>
@@ -50,7 +49,7 @@ static Evas_Smart *_smart = NULL;
 static Evas_Smart_Class _parent_sc = EVAS_SMART_CLASS_INIT_NULL;
 
 #include "extns.h"
-
+#ifndef __TIZEN__
 static const char *
 _is_fmt(const char *f, const char **extn)
 {
@@ -1501,3 +1500,4 @@ media_unknown_handle(const char *handler, const char *src)
 
    ecore_exe_run(buf, NULL);
 }
+#endif // __TIZEN__

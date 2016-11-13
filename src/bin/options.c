@@ -1,10 +1,10 @@
 #include "private.h"
 
 #include <Elementary.h>
-#include "E17Hacks.h"
 #include "options.h"
 #include "options_font.h"
 #include "options_theme.h"
+#include "options_wallpaper.h"
 #include "options_colors.h"
 #include "options_video.h"
 #include "options_behavior.h"
@@ -60,6 +60,9 @@ _cb_op_del_delay(void *data EINA_UNUSED)
    evas_object_del(op_opbox);
    evas_object_del(op_frame);
    options_font_clear();
+#ifndef __TIZEN__
+   options_wallpaper_clear();
+#endif
    options_theme_clear();
    op_opbox = NULL;
    op_frame = NULL;
@@ -83,7 +86,11 @@ _cb_opdt_hide_done(void *data, Evas_Object *obj EINA_UNUSED, const char *sig EIN
       case OPTION_NONE:      break;
       case OPTION_FONT:      options_font(op_opbox, data); break;
       case OPTION_THEME:     options_theme(op_opbox, data); break;
+#ifdef __TIZEN__
       case OPTION_WALLPAPER: break;
+#else
+      case OPTION_WALLPAPER: options_wallpaper(op_opbox, data); break;
+#endif
       case OPTION_COLORS:    options_colors(op_opbox, data); break;
       case OPTION_VIDEO:     options_video(op_opbox, data); break;
       case OPTION_BEHAVIOR:  options_behavior(op_opbox, data); break;

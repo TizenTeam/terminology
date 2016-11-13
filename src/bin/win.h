@@ -65,5 +65,7 @@ typedef Eina_Bool (*For_Each_Term)(Term *term, void *data);
 Eina_Bool
 for_each_term_do(Win *wn, For_Each_Term cb, void *data);
 
-
+#ifdef __TIZEN__
+void finalize_window(Win *wn, Term *term);
+#endif
 #endif

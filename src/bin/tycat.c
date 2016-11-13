@@ -1,4 +1,4 @@
-#ifndef __TIZEN__
+//#include "private.h" //TODO
 #include <Eina.h>
 #include <Ecore.h>
 #include <Evas.h>
@@ -11,6 +11,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+
+#ifdef __TIZEN_
+#define main tycat_main
+#endif
 
 enum {
   CENTER,
@@ -27,6 +31,7 @@ static int tw = 0, th = 0, cw = 0, ch = 0, maxw = 0, maxh = 0, _mode = CENTER;
 static Ecore_Timer *timeout_t = NULL;
 
 #include "extns.h"
+#ifndef __TIZEN__
 
 static int
 echo_off(void)
@@ -412,3 +417,4 @@ shutdown:
    return 0;
 }
 #endif
+

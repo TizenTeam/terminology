@@ -5,20 +5,19 @@
 
 #include <Ecore_Getopt.h>
 #include <Elementary.h>
-#include "E17Hacks.h"
-#include "Ecore_File_Hack.h"
-#include <dlog.h>
 #include "main.h"
 #include "win.h"
 #include "termio.h"
 #include "termpty.h"
 #include "config.h"
 #include "controls.h"
+#include "media.h"
 #include "utils.h"
 #include "ipc.h"
 #include "sel.h"
 #include "dbus.h"
 #include "miniview.h"
+#include "gravatar.h"
 #include "keyin.h"
 
 
@@ -261,7 +260,7 @@ main_ipc_new(Ipc_Instance *inst)
              int n = strlen(inst->font);
              
              snprintf(buf, sizeof(buf), "%s/fonts", elm_app_data_dir_get());
-             files = NULL; //ecore_file_ls(buf);
+             files = ecore_file_ls(buf);
              EINA_LIST_FREE(files, file)
                {
                   if (n > 0)
@@ -309,9 +308,11 @@ main_ipc_new(Ipc_Instance *inst)
      }
    win_sizing_handle(wn);
    evas_object_show(win_evas_object_get(wn));
-/*   if (inst->nowm)
+#ifndef __TIZEN__
+   if (inst->nowm)
      ecore_evas_focus_set
-     (ecore_evas_ecore_evas_get(evas_object_evas_get(win)), 1);*/
+     (ecore_evas_ecore_evas_get(evas_object_evas_get(win)), 1);
+#endif
    ecore_app_args_set(pargc, (const char **)pargv);
    free(nargv);
 }
@@ -322,9 +323,9 @@ static const char *emotion_choices[] = {
 };
 
 static Ecore_Getopt options = {
-   "x",
+   PACKAGE_NAME,
    "%prog [options]",
-   "y",
+   TIZEN_STR(PACKAGE_VERSION),
    gettext_noop("(C) 2012-%d Carsten Haitzler and others"),
    "BSD 2-Clause",
    gettext_noop("Terminal emulator written with Enlightenment Foundation Libraries."),
@@ -526,12 +527,11 @@ elm_main(int argc, char **argv)
 
    elm_language_set("");
    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
-   DBG("Main function entry point");
-/*
+#ifndef __TIZEN__
    elm_app_compile_bin_dir_set(PACKAGE_BIN_DIR);
    elm_app_compile_lib_dir_set(PACKAGE_LIB_DIR);
    elm_app_compile_data_dir_set(PACKAGE_DATA_DIR);
-*/
+#endif
 #if HAVE_GETTEXT && ENABLE_NLS
    elm_app_compile_locale_set(LOCALEDIR);
 #endif
@@ -545,13 +545,13 @@ elm_main(int argc, char **argv)
    options.copyright = "(C) 2012-2015 Carsten Haitzler and others";
 #endif
 
-/*   _log_domain = eina_log_domain_register("terminology", NULL);
+   _log_domain = eina_log_domain_register("terminology", NULL);
    if (_log_domain < 0)
      {
         EINA_LOG_CRIT(_("Could not create logging domain '%s'."), "terminology");
         elm_shutdown();
         return EXIT_FAILURE;
-     }*/
+     }
 
    config_init();
 
@@ -780,8 +780,8 @@ elm_main(int argc, char **argv)
           }
         else
           {
-             size_w = 80 /*38*/;
-             size_h = 24 /*28*/;
+             size_w = 80;
+             size_h = 24;
           }
      }
 
@@ -844,7 +844,11 @@ remote:
      }
 
    wn = win_new(name, role, title, icon_name, config,
+#ifdef __TIZEN__
                 /*fullscreen*/EINA_FALSE, iconic, /*borderless*/EINA_TRUE, override, maximized);
+#else
+                fullscreen, iconic, borderless, override, maximized);
+#endif
    // set an env so terminal apps can detect they are in terminology :)
    putenv("TERMINOLOGY=1");
    unsetenv("DESKTOP_STARTUP_ID");
@@ -881,7 +885,9 @@ remote:
    win_sizing_handle(wn);
    win = win_evas_object_get(wn);
    evas_object_show(win);
+#ifdef __TIZEN__
    finalize_window(wn, term);
+#endif
    if (startup_split)
      {
 #if (ECORE_VERSION_MAJOR > 1) || (ECORE_VERSION_MINOR >= 8)
@@ -926,12 +932,11 @@ remote:
         if (pos_y < 0) pos_y = screen_h + pos_y;
         evas_object_move(win, pos_x, pos_y);
      }
-
-/*
+#ifndef __TIZEN__
    if (nowm)
       ecore_evas_focus_set(ecore_evas_ecore_evas_get(
             evas_object_evas_get(win)), 1);
-*/
+#endif
 
    ty_dbus_init();
 
@@ -959,13 +964,14 @@ remote:
 
    termpty_shutdown();
    miniview_shutdown();
+   gravatar_shutdown();
 
    windows_free();
 
    config_del(_main_config);
    key_bindings_shutdown();
    config_shutdown();
-/*   eina_log_domain_unregister(_log_domain);*/
+   eina_log_domain_unregister(_log_domain);
    _log_domain = -1;
 
 #if HAVE_GETTEXT && ENABLE_NLS

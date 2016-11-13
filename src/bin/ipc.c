@@ -2,9 +2,7 @@
 
 #include <Ecore.h>
 #include <Ecore_Ipc.h>
-#include "E17Hacks.h"
 #include <Eet.h>
-#include "Eet_Hack.h"
 #include "ipc.h"
 
 static Ecore_Ipc_Server *ipc = NULL;

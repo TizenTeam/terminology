@@ -1,7 +1,6 @@
 #include "private.h"
 
 #include <Elementary.h>
-#include "E17Hacks.h"
 #include "controls.h"
 #include "options.h"
 #include "about.h"

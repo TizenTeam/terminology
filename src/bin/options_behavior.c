@@ -1,8 +1,6 @@
 #include "private.h"
 
 #include <Elementary.h>
-#include "E17Hacks.h"
-#include "evas_textgrid.eo.legacy_Hack.h"
 #include "config.h"
 #include "termio.h"
 #include "options.h"

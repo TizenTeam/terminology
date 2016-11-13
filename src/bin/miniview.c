@@ -3,8 +3,6 @@
 #include <assert.h>
 #include <math.h>
 
-#include "E17Hacks.h"
-#include "evas_textgrid.eo.legacy_Hack.h"
 #include "private.h"
 #include "miniview.h"
 #include "col.h"
@@ -14,7 +12,23 @@
 #include "main.h"
 
 /* specific log domain to help debug only miniview */
+#ifndef __TIZEN__
+int _miniview_log_dom = -1;
+
+#undef CRITICAL
+#undef ERR
+#undef WRN
+#undef INF
+#undef DBG
+
+#define CRIT(...)     EINA_LOG_DOM_CRIT(_miniview_log_dom, __VA_ARGS__)
+#define ERR(...)      EINA_LOG_DOM_ERR(_miniview_log_dom, __VA_ARGS__)
+#define WRN(...)      EINA_LOG_DOM_WARN(_miniview_log_dom, __VA_ARGS__)
+#define INF(...)      EINA_LOG_DOM_INFO(_miniview_log_dom, __VA_ARGS__)
+#define DBG(...)      EINA_LOG_DOM_DBG(_miniview_log_dom, __VA_ARGS__)
+#else
 int _miniview_log_dom = 0;
+#endif
 
 static Eina_Bool _deferred_renderer(void *data);
 
@@ -23,7 +37,9 @@ miniview_init(void)
 {
    if (_miniview_log_dom >= 0) return;
 
-   // _miniview_log_dom = eina_log_domain_register("miniview", NULL);
+#ifndef __TIZEN__
+   _miniview_log_dom = eina_log_domain_register("miniview", NULL);
+#endif
    if (_miniview_log_dom < 0)
      EINA_LOG_CRIT(_("Could not create logging domain '%s'."), "miniview");
 }
@@ -32,8 +48,13 @@ void
 miniview_shutdown(void)
 {
    if (_miniview_log_dom < 0) return;
-   // eina_log_domain_unregister(_miniview_log_dom);
+#ifdef __TIZEN__
    _miniview_log_dom = 0;
+#else
+   eina_log_domain_unregister(_miniview_log_dom);
+   _miniview_log_dom = -1;
+#endif
+
 }
 
 typedef struct _Miniview Miniview;

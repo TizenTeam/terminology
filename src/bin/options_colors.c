@@ -1,6 +1,5 @@
 #include <Elementary.h>
 
-#include "E17Hacks.h"
 #include "private.h"
 #include "config.h"
 #include "termio.h"

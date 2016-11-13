@@ -1,7 +1,6 @@
 #include "private.h"
 
 #include <Elementary.h>
-#include "E17Hacks.h"
 #include "config.h"
 #include "termio.h"
 #include "options.h"
@@ -193,6 +192,7 @@ _cb_op_font_preview_delayed_eval(void *data)
    Evas_Coord ox, oy, ow, oh, vx, vy, vw, vh;
    Config *config;
    
+#ifndef __TIZEN__
    if (!evas_object_visible_get(obj)) goto done;
    if (edje_object_part_swallow_get(obj, "terminology.text.preview")) goto done;
    evas_object_geometry_get(obj, &ox, &oy, &ow, &oh);
@@ -230,6 +230,7 @@ _cb_op_font_preview_delayed_eval(void *data)
      }
 done:
    evas_object_data_del(obj, "delay");
+#endif // __TIZEN__
    return EINA_FALSE;
 }
 
@@ -421,7 +422,11 @@ options_font(Evas_Object *opbox, Evas_Object *term)
 
    /* Bitmaps */
    snprintf(buf, sizeof(buf), "%s/fonts", elm_app_data_dir_get());
-   files = NULL; //ecore_file_ls(buf);
+#ifdef __TIZEN___
+   files = NULL; 
+#else
+   files = ecore_file_ls(buf);
+#endif
    if (files)
      {
         grp_it = elm_genlist_item_append(o, it_group, _("Bitmap"), NULL,
